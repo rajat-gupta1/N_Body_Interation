@@ -12,3 +12,6 @@ Following are the GIFs generated from different codes:
 
 ### Parallel:
 ![Fig 2](./parallel.gif)
+
+### CUDA:
+![Fig 3](./Cuda.gif)
