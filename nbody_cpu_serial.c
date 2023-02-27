@@ -2,15 +2,30 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "timer.h"
+// #include <omp.h>
 
 #define SOFTENING 1e-9f
+
+struct timeval timerStart;
+
+void StartTimer(){
+  gettimeofday(&timerStart, NULL);
+}
+
+double GetTimer(){
+  struct timeval timerStop, timerElapsed;
+  gettimeofday(&timerStop, NULL);
+  timersub(&timerStop, &timerStart, &timerElapsed);
+
+  return timerElapsed.tv_sec*1000.0+timerElapsed.tv_usec/1000.0;
+}
+
 
 typedef struct { float x, y, z, vx, vy, vz; } Body;
 
 void randomizeBodies(float *data, int n) {
-  for (int i = 0; i < n; i++) {
+  for (int i = 0; i < n; i++)
     data[i] = 2.0f * (rand() / (float)RAND_MAX) - 1.0f;
-  }
 }
 
 void bodyForce(Body *p, float dt, int n) {
@@ -32,34 +47,45 @@ void bodyForce(Body *p, float dt, int n) {
   }
 }
 
+int particle_positions_to_csv(FILE *datafile, int iter, Body *p, int nBodies) {
+  for (int i = 0 ; i < nBodies; i++) 
+    fprintf(datafile, "%i, %f, %f, %f\n", iter, p[i].x, p[i].y, p[i].z);
+  return 0;
+}
+
 int main(const int argc, const char** argv) {
   FILE *datafile;  
-  int nBodies = 3000;
+  int nBodies = 100000;
   int nthreads = 1;
 
   if (argc > 1) nBodies = atoi(argv[1]);
   if (argc > 2) nthreads = atoi(argv[2]);
 
+  // omp_set_num_threads(nthreads);
+
   const float dt = 0.01f; // time step
-  const int nIters = 20;  // simulation iterations
+  const int nIters = 1000;  // simulation iterations
 
   int bytes = nBodies*sizeof(Body);
   float *buf = (float*)malloc(bytes);
   Body *p = (Body*)buf;
-
   randomizeBodies(buf, 6*nBodies); // Init pos / vel data
 
   double totalTime = 0.0;
+  int to_print = 1;
 
-  datafile = fopen("nbody.dat","w");
-  fprintf(datafile,"%d %d %d\n", nBodies, nIters, 0);
+  datafile = fopen("nbody.csv","w");
+  // fprintf(datafile,"%d %d %d\n", nBodies, nIters, 0);
 
   /* ------------------------------*/
   /*     MAIN LOOP                 */
   /* ------------------------------*/
   for (int iter = 1; iter <= nIters; iter++) {
-    printf("iteration:%d\n", iter);
-    
+    // printf("iteration:%d\n", iter);
+
+    if (iter % to_print == 0)
+      particle_positions_to_csv(datafile, iter/to_print, p, nBodies);
+
     StartTimer();
 
     bodyForce(p, dt, nBodies);           // compute interbody forces
