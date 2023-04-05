@@ -21,6 +21,8 @@ Using openmp, we get the following times:
 |16|  78.281 | 4.120 | 12.6 | 0.24 |
 |32|  54.504 | 2.869 | 18.0 | 0.35 |
 
+![Speedup Graph](./Parallel_Graph.png)
+
 On increasing the threads, we get speed-
 up up to a certain level. The total time taken for 1 thread is very similar to the total time taken for 
 serial execution.
