@@ -23,6 +23,8 @@ double GetTimer(){
 
 typedef struct { float x, y, z, vx, vy, vz; } Body;
 void randomizeBodies(float *data, int n) {
+  /* Function to initialize bodies randomly
+  */
   for (int i = 0; i < n; i++)
   {
     data[i] = 2.0f * (rand() / (float)RAND_MAX) - 1.0f;
@@ -30,7 +32,8 @@ void randomizeBodies(float *data, int n) {
 }
 
 void bodyForce(Body *p, float dt, int n) {
-
+  /* Function to calculate body force for each body
+  */
   #ifdef PARALLEL
   #pragma omp parallel for default(none) shared(p, n, dt) schedule(static)
   #endif
@@ -45,14 +48,18 @@ void bodyForce(Body *p, float dt, int n) {
       float invDist = 1.0f / sqrtf(distSqr);
       float invDist3 = invDist * invDist * invDist;
 
+      // Calculating force on each particle
       Fx += dx * invDist3; Fy += dy * invDist3; Fz += dz * invDist3;
     }
 
+    // Finding velocity in each direction
     p[i].vx += dt*Fx; p[i].vy += dt*Fy; p[i].vz += dt*Fz;
   }
 }
 
 int particle_positions_to_csv(FILE *datafile, int iter, Body *p, int nBodies) {
+  /* Sending files to csv for plot generation
+  */
   for (int i = 0 ; i < nBodies; i++) 
     fprintf(datafile, "%i, %f, %f, %f\n", iter, p[i].x, p[i].y, p[i].z);
   return 0;
@@ -60,12 +67,11 @@ int particle_positions_to_csv(FILE *datafile, int iter, Body *p, int nBodies) {
 
 int main(const int argc, const char** argv) {
 
-  // srand ( time(NULL) );
-
   FILE *datafile;  
   int nBodies = 10000;
   int nthreads = 1;
 
+  // Taking number of bodies and threads as arguments
   if (argc > 1) nBodies = atoi(argv[1]);
   if (argc > 2) nthreads = atoi(argv[2]);
 
@@ -85,14 +91,13 @@ int main(const int argc, const char** argv) {
   int to_print = 1;
 
   datafile = fopen("nbody.csv","w");
-  // fprintf(datafile,"%d %d %d\n", nBodies, nIters, 0);
 
   /* ------------------------------*/
   /*     MAIN LOOP                 */
   /* ------------------------------*/
   for (int iter = 1; iter <= nIters; iter++) {
-    // printf("iteration:%d\n", iter);
     
+    // Printing only for some specific iterations
     if (iter % to_print == 0)
       particle_positions_to_csv(datafile, iter/to_print, p, nBodies);
 
