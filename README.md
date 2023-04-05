@@ -1,4 +1,4 @@
-# Project 3
+# N Body Interaction:
 
 To initialize the system, I gave the points random velocities in different directions and most of the 
 particles flew away from the origin. Some particles with low velocities were near the origin and 
